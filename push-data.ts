@@ -16,7 +16,10 @@ async function pushAPIEndpointFiles(base_url: string, unique_id: string) {
   await Promise.all(files.map(async (filepath: string) => {
     try {
       console.log(`Push endpoint "${filepath}...`);
-      (await axios.post('/public/raw/api-code', { filepath, data: await fsPromise.readFile(filepath, 'utf-8') }, { baseURL, params: { unique_id } })).data;
+      let clean_data = await fsPromise.readFile(filepath, 'utf-8');
+      clean_data = clean_data.split('\n').filter(x => !x.startsWith('export const __http_method')).join('\n').trim();
+      clean_data = clean_data.split('\n').filter(x => !x.startsWith('export const __http_path')).join('\n').trim();
+      (await axios.post('/public/raw/api-code', { filepath, data: clean_data }, { baseURL, params: { unique_id } })).data;
       console.log(`Push endpoint "${filepath} success`);
     } catch (err) {
       console.error(`[Error] push endpoint "${filepath}...`);
